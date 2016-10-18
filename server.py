@@ -24,6 +24,9 @@
 import flask
 from flask import Flask, request
 import json
+import time
+
+
 app = Flask(__name__)
 app.debug = True
 
@@ -57,7 +60,12 @@ class World:
 # you can test your webservice from the commandline
 # curl -v -H "Content-Type: appication/json" -X PUT http://127.0.0.1:5000/entity/X -d '{"x":1,"y":1}' 
 
-myWorld = World()          
+myWorld = World()
+
+def getCurrentTime():
+    return int(round(time.time() * 1000))
+
+time_of_last_update=getCurrentTime()
 
 # I give this to you, this is how you get the raw body/data portion of a post in flask
 # this should come with flask but whatever, it's not my project.
@@ -74,18 +82,24 @@ def flask_post_json():
 @app.route("/")
 def hello():
     '''Return something coherent here.. perhaps redirect to /static/index.html '''
-    return flask.redirect("static/index.html",code=200)
+    return flask.redirect("static/index.html",code=302)
 
 @app.route("/entity/<entity>", methods=['POST','PUT'])
 def update(entity):
     '''update the entities via this interface'''
+    global time_of_last_update
+    time_of_last_update=getCurrentTime()
     myWorld.set(entity,flask_post_json())
     return json.dumps(myWorld.get(entity))
 
 @app.route("/world", methods=['POST','GET'])    
 def world():
     '''you should probably return the world here'''
-    return json.dumps(myWorld.world())
+    print getCurrentTime()-time_of_last_update
+    if(getCurrentTime()-time_of_last_update<100):
+        return json.dumps(myWorld.world())
+    else:
+        return json.dumps("TIME_OUT")
 
 @app.route("/entity/<entity>")    
 def get_entity(entity):
