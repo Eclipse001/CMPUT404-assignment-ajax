@@ -45,15 +45,11 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
         }
     };
     
-    xhr.open(objects["method"],url);
+    xhr.open("POST",url);
+    xhr.setRequestHeader("Accept","application/json");
+    xhr.setRequestHeader("Content-type","application/json");
     
-    if(objects["content"]!=null){
-    	xhr.setRequestHeader("Accept","application/json");
-    	xhr.send(JSON.stringify(objects["content"]));
-    }
-    else{
-    	xhr.send(null);
-    }
+    xhr.send(objects);
 }
 world = {};
 //XXX: TODO Make this prettier!
@@ -128,15 +124,9 @@ function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
     
-    var objects = {
-   		"method":"POST",
-   		"content":null,
-	 };
+    var objects=JSON.stringify(data);
     var callback;
-    
-    objects["content"]=data;
-    
-	 sendJSONXMLHTTPRequest("/entity/" + entity,objects,callback);
+	 sendJSONXMLHTTPRequest("/entity" + entity,objects,callback);
 }
 var counter = 0;
 function addEntityWithoutName(data) {
@@ -252,14 +242,12 @@ mouse.mousedraggers.push(function(x,y,clicked,e) {
                           'radius':10});
 });
 function update() {
-    var objects = {
-   		"method":"GET",
-	 };
-	 var callback;
-	
-    sendJSONXMLHTTPRequest("/world/", objects, callback);
-    world=callback;
     
+    var objects=null;
+	 var callback;
+    sendJSONXMLHTTPRequest("/world", objects, callback);
+    
+    world=callback;
     drawFrame();
 }
 // 30 frames per second
